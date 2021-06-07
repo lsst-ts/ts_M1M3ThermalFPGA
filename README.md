@@ -69,11 +69,9 @@ sure next bit/byte on serial line is transmitted after the current).
 
 Commands, followed by arguments are filled into _Software
 Resources/CommandFIFO_. _Commands/CommandFIFOMultiplexer_ read this and
-multiplex the command to various handlers _(This is exactly how CPUs
-
-handle instructions from binary code)_. Handlers fills in queues (e.g. ModBus
-
-writes queue with instructions to write if you are writing to a queue).
+multiplex the command to various handlers _(This is exactly how CPUs handle
+instructions from binary code)_. Handlers fills in queues (e.g. ModBus transmit
+command pushes bytes to be written into a queue associated with the given bus).
 **SCTL**s are handling low level IO. 
 
 ## Request multiplexing
@@ -143,33 +141,33 @@ the host machine to parse the data.
 
 ## Slot 1 - [NI 9207](https://www.ni.com/en-us/support/model.ni-9207.html)
 
-| Port | Assignment |
-| ---- | ---------- |
-| AI0  | CT7 current |
-| AI1  | CT8 current |
-| AI2  |            |
-| AI3  |            |
-| AI4  |            |
-| AI5  |            |
-| AI6  |            |
-| AI7  |            |
+| Port | Assignment            |
+| ---- | --------------------- |
+| AI0  | CT7 current           |
+| AI1  | CT8 current           |
+| AI2  |                       |
+| AI3  |                       |
+| AI4  |                       |
+| AI5  |                       |
+| AI6  |                       |
+| AI7  |                       |
 | AI8  | Mixing Valve position |
-| AI9  |            |
-| AI10 |            |
-| AI11 |            |
-| AI12 |            |
-| AI13 |            |
-| AI14 |            |
-| AI15 |            |
+| AI9  |                       |
+| AI10 |                       |
+| AI11 |                       |
+| AI12 |                       |
+| AI13 |                       |
+| AI14 |                       |
+| AI15 |                       |
 
 ## Slot 2 - [NI 9265](https://www.ni.com/en-us/support/model.ni-9265.html)
 
-| Port | Assignment |
-| ---- | ---------- |
+| Port | Assignment           |
+| ---- | -------------------- |
 | AO0  | Mixing valve command |
-| AO1  |            |
-| AO2  |            |
-| AO3  |            |
+| AO1  |                      |
+| AO2  |                      |
+| AO3  |                      |
 
 ## Slot 3 - [NI 9401](https://www.ni.com/en-us/support/model.ni-9401.html)
 
@@ -188,62 +186,62 @@ the host machine to parse the data.
 
 ## Slot 4 - [NI 9425](https://www.ni.com/en-us/support/model.ni-9425.html)
 
-| Port | Assignment |
-| ---- | ---------- |
-| DI0  | PS14 Status |
-| DI1  | PS15 Status |
-| DI2  | PS16 Status |
-| DI3  | Control Redunancy Status |
-| DI4  | Fan Coil Diffuser Status |
-| DI5  | AC Power CB15 Status |
-| DI6  | Utility Outlet CB 18 Status |
-| DI7  | Coolant Pump OL Status |
-| DI8  |            |
-| DI9  |            |
-| DI10 |            |
-| DI11 |            |
-| DI12 |            |
-| DI13 |            |
-| DI14 |            |
-| DI15 |            |
-| DI16 | FC Heaters Off Interlock |
-| DI17 | Coolant Pump Off Interlock |
-| DI18 | GIS HB Lost Interlock |
-| DI19 | Mixing Valve Closed Interlock |
-| DI20 | Support System HB Lost Interlock |
-| DI21 | Cell Door Open Interlock |
-| DI22 | GIS Eathquake Interlock |
-| DI23 | Coolant pump E Stop Interlock |
+| Port | Assignment                         |
+| ---- | ---------------------------------- |
+| DI0  | PS14 Status                        |
+| DI1  | PS15 Status                        |
+| DI2  | PS16 Status                        |
+| DI3  | Control Redunancy Status           |
+| DI4  | Fan Coil Diffuser Status           |
+| DI5  | AC Power CB15 Status               |
+| DI6  | Utility Outlet CB 18 Status        |
+| DI7  | Coolant Pump OL Status             |
+| DI8  |                                    |
+| DI9  |                                    |
+| DI10 |                                    |
+| DI11 |                                    |
+| DI12 |                                    |
+| DI13 |                                    |
+| DI14 |                                    |
+| DI15 |                                    |
+| DI16 | FC Heaters Off Interlock           |
+| DI17 | Coolant Pump Off Interlock         |
+| DI18 | GIS HB Lost Interlock              |
+| DI19 | Mixing Valve Closed Interlock      |
+| DI20 | Support System HB Lost Interlock   |
+| DI21 | Cell Door Open Interlock           |
+| DI22 | GIS Eathquake Interlock            |
+| DI23 | Coolant pump E Stop Interlock      |
 | DI24 | Cabinet Over Temperature Interlock |
-| DI25 |            |
-| DI26 |            |
-| DI27 |            |
-| DI28 |            |
-| DI29 |            |
-| DI30 |            |
-| DI31 |            |
+| DI25 |                                    |
+| DI26 |                                    |
+| DI27 |                                    |
+| DI28 |                                    |
+| DI29 |                                    |
+| DI30 |                                    |
+| DI31 |                                    |
 
 ## Slot 5 - [NI 9485](https://www.ni.com/en-us/support/model.ni-9485.html)
 
-| Port | Assignment |
-| ---- | ---------- |
+| Port | Assignment           |
+| ---- | -------------------- |
 | CH0  | Fan Coils Heaters On |
-| CH1  | Thermal Heartbeat |
-| CH2  | Coolant Pump On |
-| CH3  |            |
-| CH4  |            |
-| CH5  |            |
-| CH6  |            |
-| CH7  |            |
+| CH1  | Thermal Heartbeat    |
+| CH2  | Coolant Pump On      |
+| CH3  |                      |
+| CH4  |                      |
+| CH5  |                      |
+| CH6  |                      |
+| CH7  |                      |
 
 ## Slot 6 - [NI 9871](https://www.ni.com/en-us/support/model.ni-9871.html)
 
-| Port | Assignment |
-| ---- | ---------- |
-| 1    | VFD        |
-| 2    | Flow Meter |
-| 3    | Wind Sensor|
-| 4    |            |
+| Port | Assignment  |
+| ---- | ----------  |
+| 1    | VFD         |
+| 2    | Flow Meter  |
+| 3    | Wind Sensor |
+| 4    |             |
 
 ## Slot 7 - [NI 9870](https://www.ni.com/en-us/support/model.ni-9870.html)
 
@@ -256,13 +254,13 @@ the host machine to parse the data.
 
 ## Slot 8 - [NI 9213](https://www.ni.com/en-us/support/model.ni-9213.html)
 
-| Port | Assignment |
-| ---- | ---------- |
-| CH0  | Air Mirror Top Surface |
-| CH1  | Mirror Cell Air |
-| CH2  | Mirror Coolant Supply |
-| CH3  | Mirror Coolant Return |
-| CH4  | Telescope Coolant Supply |
-| CH5  | Telescope Coolant Return |
-| CH6  |            |
-| CH7  |            |
+| port | Assignment               |
+| ---- | ------------------------ |
+| ch0  | air mirror top surface   |
+| ch1  | mirror cell air          |
+| ch2  | mirror coolant supply    |
+| ch3  | mirror coolant return    |
+| ch4  | telescope coolant supply |
+| ch5  | telescope coolant return |
+| ch6  |                          |
+| ch7  |                          |
