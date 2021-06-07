@@ -69,7 +69,8 @@ sure next bit/byte on serial line is transmitted after the current).
 
 Commands, followed by arguments are filled into _Software
 Resources/CommandFIFO_. _Commands/CommandFIFOMultiplexer_ read this and
-multiplex the command to various handlers _(This is exactly how CPUs are
+multiplex the command to various handlers _(This is exactly how CPUs
+
 handle instructions from binary code)_. Handlers fills in queues (e.g. ModBus
 
 writes queue with instructions to write if you are writing to a queue).
