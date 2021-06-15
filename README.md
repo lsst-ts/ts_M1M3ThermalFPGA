@@ -2,10 +2,19 @@
 
 ## Description
 
-This repository contains the LabVIEW 2018 FPGA design for the M1M3 Thermal
-System FPGA used by the **ts_M1M3Thermal** software. The FPGA is middleman
-between [C/C++ control application](https://github.com/lsst-ts/ts_m1m3thermal)
-and hardware connected to cRIO. 
+This repo contains the LabVIEW 2018 code of the M1M3 Thermal System FPGA used
+by the **ts_M1M3Thermal** software. The FPGA is middleman between [C/C++
+control application](https://github.com/lsst-ts/ts_m1m3thermal) and hardware
+connected to cRIO.
+
+```mermaid
+graph LR
+Controller -- CommandFIFO --> FPGA
+FPGA -- CommandFIFOMultiplexer --> DIO
+Controller -- RequestFIFO --> FPGA
+FPGA -- U8ResponseFIFO --> Controller
+FPGA -- U16ResponseFIFO --> Controller
+```
 
 :warning: Please use **git clone --recursive** to get linked dependencies (Common_ libraries).
 
@@ -35,20 +44,21 @@ It is common for the FPGA build process to get stuck on the *Generate Xilinx
 IP* step. To restart the build, kill all Xilinx processes from task manager.
 
 1. Open LabVIEW 2018.
-2. Open ts_M1M3ThermalFPGA.lvproj
+2. Open M1M3ThermalFPGA.lvproj
 3. Expand RT CompactRIO Target
 4. Expand FPGA Target
 5. Expand Build Specifications
-6. Select ts_M1M3ThermalFPGA
-7. Right-Click -> Build
+6. Select M1M3SupportFPGA
+7. Right-Click -> **Build**
 8. Select "Use the local compile server" _(it's usually faster than LabView FPGA Compile Cloud)_
 9. Click OK
 10. Wait for build to successfully finish
-11. Select ts_M1M3ThermalFPGA.vi (under FPGA Target)
+  * check CPU usage, there should be process called Vivado taking > 20% CPU time
+11. Select M1M3SupportFPGA.vi (under FPGA Target)
 12. Right click, select **"Launch C API Generator"**
 13. Click **Generate** (after selecting existing output directory and leaving Prefix blank)
-14. Copy resulting lvbitx file to ts_m1m3thermal/Bitfiles, and NiFpga_M1M3ThermalFPGA.h to ts_m1m3Thermal/src/NiFpga
-15. Recompile ts_M1M3Thermal
+14. Copy resulting lvbitx file to ts_m1m3thermal/Bitfiles, and NiFpga_M1M3ThermalFPGA.h to ts_m1m3thermal/src/NiFpga
+15. Recompile ts_m1m3thermal (make)
 
 ## Overview
 
@@ -64,6 +74,19 @@ Receiving (reading) code works by placing values into FIFO. Transmitting
 (writing) code works by reading (without timeout) from FIFO, and if something
 is available, act accordingly. This is coupled with DIO states (e.g. to make
 sure next bit/byte on serial line is transmitted after the current).
+
+# Controlled devices
+
+* 96x fan ILCs
+  * Modbus bus (marked as F, A-E are support system buses)
+  * ILCs, details in LTS-646
+  * can set target output temperature and fan speed
+* Coolant pump
+* Mixing valve
+* Coolant flow meter
+* Windspeed sensor
+
+**Thermocouples located throughout mirror are readout by separate software.**
 
 ## Command multiplexing
 
@@ -143,8 +166,8 @@ the host machine to parse the data.
 
 | Port | Assignment            |
 | ---- | --------------------- |
-| AI0  | CT7 current           |
-| AI1  | CT8 current           |
+| AI0  | CT7 current monitor   |
+| AI1  | CT8 current monitor   |
 | AI2  |                       |
 | AI3  |                       |
 | AI4  |                       |
@@ -162,105 +185,128 @@ the host machine to parse the data.
 
 ## Slot 2 - [NI 9265](https://www.ni.com/en-us/support/model.ni-9265.html)
 
-| Port | Assignment           |
-| ---- | -------------------- |
-| AO0  | Mixing valve command |
-| AO1  |                      |
-| AO2  |                      |
-| AO3  |                      |
+Mixing valve control.
+
+| Port | Pin | Assignment                     |
+| ---- | --- | ------------------------------ |
+| AO0  | 0   | Mixing valve set point         |
+| COM0 | 1   | COM                            |
+| AO1  |     |                                |
+| COM1 |     |                                |
+| AO2  |     |                                |
+| COM2 |     |                                |
+| AO3  |     |                                |
+| COM3 |     |                                |
+| AO4  |     |                                |
+| COM4 |     |                                |
+| Vsup | 8   | 24 V                           |
+| GND  | 9   | GND                            |
 
 ## Slot 3 - [NI 9401](https://www.ni.com/en-us/support/model.ni-9401.html)
 
-:bus: ModBus A
+Fans (96x) ILC Modbus.
 
-| Port | Assignment |
-| ---- | ---------- |
-| DIO0 | bus A Rx   |
-| DIO1 | -          |
-| DIO2 | -          |
-| DIO3 | -          |
-| DIO4 | bus A Tx   |
-| DIO5 | -          |
-| DIO6 | -          |
-| DIO7 | -          |
+| Port | Pin | Assignment                     |
+| ---- | --- | ------------------------------ |
+|DIO0  | 14  | Subnet F Rx                    |
+|DIO1  |     |                                |
+|DIO2  |     |                                |
+|DIO3  |     |                                |
+| Com  | 1   |                                |
+|DIO4  | 20  | Subnet F Tx                    |
+|DIO5  |     |                                |
+|DIO6  |     |                                |
+|DIO7  |     |                                |
+| COM  | 7   |                                |
 
 ## Slot 4 - [NI 9425](https://www.ni.com/en-us/support/model.ni-9425.html)
 
-| Port | Assignment                         |
-| ---- | ---------------------------------- |
-| DI0  | PS14 Status                        |
-| DI1  | PS15 Status                        |
-| DI2  | PS16 Status                        |
-| DI3  | Control Redunancy Status           |
-| DI4  | Fan Coil Diffuser Status           |
-| DI5  | AC Power CB15 Status               |
-| DI6  | Utility Outlet CB 18 Status        |
-| DI7  | Coolant Pump OL Status             |
-| DI8  |                                    |
-| DI9  |                                    |
-| DI10 |                                    |
-| DI11 |                                    |
-| DI12 |                                    |
-| DI13 |                                    |
-| DI14 |                                    |
-| DI15 |                                    |
-| DI16 | FC Heaters Off Interlock           |
-| DI17 | Coolant Pump Off Interlock         |
-| DI18 | GIS HB Lost Interlock              |
-| DI19 | Mixing Valve Closed Interlock      |
-| DI20 | Support System HB Lost Interlock   |
-| DI21 | Cell Door Open Interlock           |
-| DI22 | GIS Eathquake Interlock            |
-| DI23 | Coolant pump E Stop Interlock      |
-| DI24 | Cabinet Over Temperature Interlock |
-| DI25 |                                    |
-| DI26 |                                    |
-| DI27 |                                    |
-| DI28 |                                    |
-| DI29 |                                    |
-| DI30 |                                    |
-| DI31 |                                    |
+| Port | Pin | Assignment                     |
+| ---- | --- | ------------------------------ |
+| DI0  | 1   | PS 14 Status                   |
+| DI1  | 2   | PS 15 Status                   |
+| DI2  | 3   | PS 16 Status                   |
+| DI3  | 4   | Ctrls Redundancy Status        |
+| DI4  | 5   | Fan Coils Diffuser Status      |
+| DI5  | 6   | AC Power CB15 Status           |
+| DI6  | 7   | Utility outlet CB18 Status     |
+| DI7  | 8   | Coolant pump OL status         |
+| COM  | 17  | COM                            |
+| DI16 | 19  | FC heaters off interlock       |
+| DI17 | 20  | Coolant pump off interlock     |
+| DI18 | 21  | GIS HB loss interlock          |
+| DI19 | 22  | mixing valve closed interlock  |
+| DI20 | 23  | Support System HB loss         |
+| DI21 | 24  | Cell door open interlock       |
+| DI22 | 25  | GIS earthquake interlock       |
+| DI23 | 26  | Coolant pump e-stop interlock  |
+| DI24 | 27  | Cabinet Over Temp interlock    |
+| DI25 | 28  |                                |
+| DI26 | 29  |                                |
+| DI27 | 30  |                                |
+| DI28 | 31  |                                |
+| DI29 | 32  |                                |
+| DI30 | 33  |                                |
+| DI31 | 34  |                                |
 
 ## Slot 5 - [NI 9485](https://www.ni.com/en-us/support/model.ni-9485.html)
 
-| Port | Assignment           |
-| ---- | -------------------- |
-| CH0  | Fan Coils Heaters On |
-| CH1  | Thermal Heartbeat    |
-| CH2  | Coolant Pump On      |
-| CH3  |                      |
-| CH4  |                      |
-| CH5  |                      |
-| CH6  |                      |
-| CH7  |                      |
+| Port | Pin | Assignment                     |
+| ---- | --- | ------------------------------ |
+| Ch0a | 0   | Ch0 - Fan Coils / Heaters On   |
+| Ch0b | 1   | V Sup                          |
+| Ch1a | 2   | Thermal System Controller HB   |
+| Ch1b | 3   | V Sup                          |
+| Ch2a | 4   | Coolant pump On                |
+| Ch2b | 5   | V Sup                          |
+| Ch3a |     |                                |
+| Ch3b |     |                                |
+| Ch4a |     |                                |
+| Ch4b |     |                                |
+| Ch5a |     |                                |
+| Ch5b |     |                                |
+| Ch6a |     |                                |
+| Ch6b |     |                                |
+| Ch7a |     |                                |
+| Ch7b |     |                                |
 
 ## Slot 6 - [NI 9871](https://www.ni.com/en-us/support/model.ni-9871.html)
 
-| Port | Assignment  |
-| ---- | ----------  |
-| 1    | VFD         |
-| 2    | Flow Meter  |
-| 3    | Wind Sensor |
-| 4    |             |
+4 port RS-485/422. Connected devices are usually using Modbus connection.
+
+| Port | Pin | Assignment                     |
+| ---- | --- | ------------------------------ |
+| 1    | NA  | Coolant Pump VFD               |
+| 2    | NA  | Flow meter                     |
+| 3    | NA  | Wind sensor                    |
+| 4    | NA  |                                |
 
 ## Slot 7 - [NI 9870](https://www.ni.com/en-us/support/model.ni-9870.html)
 
-| Port | Assignment |
-| ---- | ---------- |
-| 1    |            |
-| 2    |            |
-| 3    |            |
-| 4    |            |
+| Port | Pin | Assignment                     |
+| ---- | --- | ------------------------------ |
+| 1    | NA  |                                |
+| 2    | NA  |                                |
+| 3    | NA  |                                |
+| 4    | NA  |                                |
 
 ## Slot 8 - [NI 9213](https://www.ni.com/en-us/support/model.ni-9213.html)
 
-| port | Assignment               |
-| ---- | ------------------------ |
-| ch0  | air mirror top surface   |
-| ch1  | mirror cell air          |
-| ch2  | mirror coolant supply    |
-| ch3  | mirror coolant return    |
-| ch4  | telescope coolant supply |
-| ch5  | telescope coolant return |
-| ch6  |                          |
-| ch7  |                          |
+| port | Pins(+-) | Assignment               |
+| ---- | -------- | ------------------------ |
+| TC0  | 2,20     | air mirror top surface   |
+| TC1  | 3,21     | mirror cell air          |
+| TC2  | 4,22     | mirror coolant supply    |
+| TC3  | 5,23     | mirror coolant return    |
+| TC4  | 6,24     | telescope coolant supply |
+| TC5  | 7,25     | telescope coolant return |
+| TC6  | 8,26     |                          |
+| TC7  | 9,27     |                          |
+| TC8  | 10,28    |                          |
+| TC9  | 11,29    |                          |
+| TC10 | 12,30    |                          |
+| TC11 | 13,31    |                          |
+| TC12 | 14,32    |                          |
+| TC13 | 15,33    |                          |
+| TC14 | 16,34    |                          |
+| TC15 | 17,35    |                          |
