@@ -34,11 +34,14 @@ example](https://www.evergreeninnovations.co/blog-labview-rt-project/).
 
 ## Build Instructions
 
-Building the FPGA takes just about an hour. As [C++
-Controller](https://github.com/lsst-ts/ts_m1m3thermal) is used to talk to FPGA,
+Building the FPGA takes just about 45 minutes. As [C++
+Controller](https://github.com/lsst-ts/ts_m1m3support) is used to talk to FPGA,
 you need to generate C API and transfer the bitfile to cRIO, and C header and
 source files to src/LSST/M1M3/SS/FPGA directory. Bitfile is loaded by
 NiFpga_Open call, and contains binary data send to program the FPGA.
+
+It is common for the FPGA build process to get stuck on the *Generate Xilinx
+IP* step. To restart the build, kill all Xilinx processes from task manager.
 
 1. Open LabVIEW 2018.
 2. Open M1M3ThermalFPGA.lvproj
@@ -57,18 +60,20 @@ NiFpga_Open call, and contains binary data send to program the FPGA.
 14. Copy resulting lvbitx file to ts_m1m3thermal/Bitfiles, and NiFpga_M1M3ThermalFPGA.h to ts_m1m3thermal/src/NiFpga
 15. Recompile ts_m1m3thermal (make)
 
-
 ## Overview
 
-This FPGA design is makes heavy use of FIFOs and **S**ingle **C**ycle **T**imed
-**L**oop or **SCTL** to move data around the design and keep the size of the
-design to a minimum. It is highly recommended that before attempting to make a
-change to the design that you familiarize yourself with the quirks within
-LabVIEW regarding these two mechanisms.
+The FPGA design makes heavy use of FIFOs and **S**ingle **C**ycle **T**imed
+**L**oop (**SCTL**) for critical hardware loops. As FPGA has to sample DIOs
+(serial lines, pumps, flow meters,.. ), it's critical those are properly timed
+and running all the time. In a classic front/back processing design (see e.g.
+Linux Kernel interrupt handling), sampling code just record the values or bits
+and bytes and ship them to a FIFO queues for handling. SCTLs, which are
+guarantee to take one clock tick, are ideal for handling inputs and outputs.
 
-The design shares commonalities with [M1M3 support
-FPGA](https://github.com/lsst-ts/ts_m1m3supportFPGA). Please see it for more
-details.
+Receiving (reading) code works by placing values into FIFO. Transmitting
+(writing) code works by reading (without timeout) from FIFO, and if something
+is available, act accordingly. This is coupled with DIO states (e.g. to make
+sure next bit/byte on serial line is transmitted after the current).
 
 # Controlled devices
 
@@ -83,18 +88,100 @@ details.
 
 **Thermocouples located throughout mirror are readout by separate software.**
 
+## Command multiplexing
+
+Commands, followed by arguments are filled into _Software
+Resources/CommandFIFO_. _Commands/CommandFIFOMultiplexer_ read this and
+multiplex the command to various handlers _(This is exactly how CPUs handle
+instructions from binary code)_. Handlers fills in queues (e.g. ModBus transmit
+command pushes bytes to be written into a queue associated with the given bus).
+**SCTL**s are handling low level IO. 
+
+## Request multiplexing
+
+Data cannot be read by controller directly (via DMA), but has to be passed
+through FIFOs _(usually FPGAs allows DMA to read data directly from memory, but
+that doesn't seem to be cause with cRIO design)_. So Controller have to issue
+request by writing it to _Software Resources/RequestFIFO_. Responses are read
+from _Software Resources/SGLResponseFIFO_, _Software Resources/U8ResponseFIFO_
+and _Software Resources/U16ResponseFIFO_.
+
+## Telemetry, Health and Status
+
+Telemetry or Health and Status data are recorded in **STCL**. Telemetry request
+(253, _Data Types/Addresses_) dumps 323 U8 values from
+_Telemetry/Hardware/Memory_ into _Software Resources/U8ResponseFIFO_. _Memory_
+is filled from various FIFOs, which are filled from DIOs - see _Telemetry_.
+
+## Health and Status
+
+See [HealthAndStatusMemory.md](HealthAndStatusMemory.md) for memory content.
+To request memory data, write command followed by parameter into
+HealthAndStatusControlFIFO. Response to command is written into
+HealthAndStatusDataFIFO (U64).
+
+### Health and Status commands
+
+| Command | Parameter | Action                                                            |
+| ------- | --------- | ----------------------------------------------------------------  |
+|  1      | Address   | Write address content (single U64) into HealthAndStatusDataFIFO   |
+|  2      |  N/A      | Write 64 U64 into HealthAndStatusDataFIFO. This is memory content |
+|  3      |  N/A      | Clear memory - write 0 to all memory cells                        |
+
+### Health and Status Memory
+
+See [HealthAndStatusMemory.md](HealthAndStatusMemory.md) for memory content.
+
+## Digital Input
+
+**DigitalInput** is very simple process that takes the digital input signals
+and samples them every 0.200 ms (5kHz). The trigger for the process can be
+found under *DigitalInput/Support/DigitalInputTrigger.vi* which produces a
+trigger every 0.200ms and then waits for the sample process to complete. Once a
+trigger is produced the *DigitalInput/Support/DigitalInputSampleLoop.vi* will
+read the current timestamp and state of all digital inputs and place that
+sample into a FIFO. Then at some other point in time the
+*Telemetry/Support/TelemetryUpdate.vi* will call the
+*DigitalInput/TryUpdateDigitalInputSample.vi* to read from **DigitalInputFIFO**
+Sample, Timestamp and Value fields and writes those into three entries in
+**DigitalOutputTelemetryFIFO**. **DigitalOutputTelemetryFIFO** is copied into
+**TelemetryFIFO**. **TelemetryFIFO** is processed in
+*Telemetry/Support/TelemetryMemoryUpdate.vi*, with values written into
+*Telemetry/Hardware/Memory*. Once processed, registers *TelemetryEmptyRegister*
+and *DigitalTelemetryEmpty* register are true and new sample can be obtained.
+
+Since a SCTL only allows a FIFO writes in one loop and reads in another loop
+the design utilizes multiple FIFOs to get around this restriction. In the
+example above a digital input sample is pushed into the
+*DigitalInputTelemetryFIFO* so that the it can be read by the
+*Telemetry/CopyToTelemetryFIFO.vi* loop and pushed into the global
+*TelemetryFIFO* which doesn't run inside a SCTL.
+
+The fan coil units (FCUs)  modbus processes are much more complex and rely on
+the host machine to parse the data.
+
 # DIO assignment
 
 ## Slot 1 - [NI 9207](https://www.ni.com/en-us/support/model.ni-9207.html)
 
-| Port | Pin | Assignment                     |
-| ---- | --- | ------------------------------ |
-| AI0+ | 1   | Amps Monitoring CT7            |
-| AI0- | 19  |                                |
-| AI1+ | 2   | Amps Monitoring CT8            |
-| AI1- | 20  |                                |
-| AI2+ | 3   | Mixing valve position          |
-| AI2- | 21  |                                |
+| Port | Assignment            |
+| ---- | --------------------- |
+| AI0  | CT7 current monitor   |
+| AI1  | CT8 current monitor   |
+| AI2  |                       |
+| AI3  |                       |
+| AI4  |                       |
+| AI5  |                       |
+| AI6  |                       |
+| AI7  |                       |
+| AI8  | Mixing Valve position |
+| AI9  |                       |
+| AI10 |                       |
+| AI11 |                       |
+| AI12 |                       |
+| AI13 |                       |
+| AI14 |                       |
+| AI15 |                       |
 
 ## Slot 2 - [NI 9265](https://www.ni.com/en-us/support/model.ni-9265.html)
 
@@ -104,6 +191,14 @@ Mixing valve control.
 | ---- | --- | ------------------------------ |
 | AO0  | 0   | Mixing valve set point         |
 | COM0 | 1   | COM                            |
+| AO1  |     |                                |
+| COM1 |     |                                |
+| AO2  |     |                                |
+| COM2 |     |                                |
+| AO3  |     |                                |
+| COM3 |     |                                |
+| AO4  |     |                                |
+| COM4 |     |                                |
 | Vsup | 8   | 24 V                           |
 | GND  | 9   | GND                            |
 
@@ -113,9 +208,15 @@ Fans (96x) ILC Modbus.
 
 | Port | Pin | Assignment                     |
 | ---- | --- | ------------------------------ |
-|DIO 0 | 14  | Subnet F Rx                    |
+|DIO0  | 14  | Subnet F Rx                    |
+|DIO1  |     |                                |
+|DIO2  |     |                                |
+|DIO3  |     |                                |
 | Com  | 1   |                                |
-|DIO 4 | 20  | Subnet F Tx                    |
+|DIO4  | 20  | Subnet F Tx                    |
+|DIO5  |     |                                |
+|DIO6  |     |                                |
+|DIO7  |     |                                |
 | COM  | 7   |                                |
 
 ## Slot 4 - [NI 9425](https://www.ni.com/en-us/support/model.ni-9425.html)
@@ -140,6 +241,13 @@ Fans (96x) ILC Modbus.
 | DI22 | 25  | GIS earthquake interlock       |
 | DI23 | 26  | Coolant pump e-stop interlock  |
 | DI24 | 27  | Cabinet Over Temp interlock    |
+| DI25 | 28  |                                |
+| DI26 | 29  |                                |
+| DI27 | 30  |                                |
+| DI28 | 31  |                                |
+| DI29 | 32  |                                |
+| DI30 | 33  |                                |
+| DI31 | 34  |                                |
 
 ## Slot 5 - [NI 9485](https://www.ni.com/en-us/support/model.ni-9485.html)
 
@@ -151,6 +259,16 @@ Fans (96x) ILC Modbus.
 | Ch1b | 3   | V Sup                          |
 | Ch2a | 4   | Coolant pump On                |
 | Ch2b | 5   | V Sup                          |
+| Ch3a |     |                                |
+| Ch3b |     |                                |
+| Ch4a |     |                                |
+| Ch4b |     |                                |
+| Ch5a |     |                                |
+| Ch5b |     |                                |
+| Ch6a |     |                                |
+| Ch6b |     |                                |
+| Ch7a |     |                                |
+| Ch7b |     |                                |
 
 ## Slot 6 - [NI 9871](https://www.ni.com/en-us/support/model.ni-9871.html)
 
@@ -172,4 +290,23 @@ Fans (96x) ILC Modbus.
 | 3    | NA  |                                |
 | 4    | NA  |                                |
 
-## Slot 8 - spare
+## Slot 8 - [NI 9213](https://www.ni.com/en-us/support/model.ni-9213.html)
+
+| port | Pins(+-) | Assignment               |
+| ---- | -------- | ------------------------ |
+| TC0  | 2,20     | air mirror top surface   |
+| TC1  | 3,21     | mirror cell air          |
+| TC2  | 4,22     | mirror coolant supply    |
+| TC3  | 5,23     | mirror coolant return    |
+| TC4  | 6,24     | telescope coolant supply |
+| TC5  | 7,25     | telescope coolant return |
+| TC6  | 8,26     |                          |
+| TC7  | 9,27     |                          |
+| TC8  | 10,28    |                          |
+| TC9  | 11,29    |                          |
+| TC10 | 12,30    |                          |
+| TC11 | 13,31    |                          |
+| TC12 | 14,32    |                          |
+| TC13 | 15,33    |                          |
+| TC14 | 16,34    |                          |
+| TC15 | 17,35    |                          |
