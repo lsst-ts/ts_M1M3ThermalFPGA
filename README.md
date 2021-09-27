@@ -10,7 +10,7 @@ connected to cRIO.
 ```mermaid
 graph LR
 Controller -- CommandFIFO --> FPGA
-FPGA -- CommandFIFOMultiplexer --> DIO
+FPGA -- CommandFIFOMultiplexer --> DIO (Digital Input - Output)
 Controller -- RequestFIFO --> FPGA
 FPGA -- U8ResponseFIFO --> Controller
 FPGA -- U16ResponseFIFO --> Controller
