@@ -7,4 +7,4 @@
 [submodule "src/Modbus_Processing_Unit"]
 	path = src/Modbus_Processing_Unit
 	url = https://github.com/lsst-ts/Modbus_Processing_Unit
-	branch = tickets/DM-31196
+	branch = develop
