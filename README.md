@@ -38,27 +38,27 @@ Building the FPGA takes just about 45 minutes. As [C++
 Controller](https://github.com/lsst-ts/ts_m1m3support) is used to talk to FPGA,
 you need to generate C API and transfer the bitfile to cRIO, and C header and
 source files to src/LSST/M1M3/SS/FPGA directory. Bitfile is loaded by
-NiFpga_Open call, and contains binary data send to program the FPGA.
+NiFpga\_Open call, and contains binary data send to program the FPGA.
 
 It is common for the FPGA build process to get stuck on the *Generate Xilinx
 IP* step. To restart the build, kill all Xilinx processes from task manager.
 
 1. Open LabVIEW 2018.
-2. Open M1M3ThermalFPGA.lvproj
+2. Open ts\_M1M3ThermalFPGA.lvproj
 3. Expand RT CompactRIO Target
 4. Expand FPGA Target
 5. Expand Build Specifications
-6. Select M1M3SupportFPGA
+6. Select ts\_M1M3ThermalFPGA
 7. Right-Click -> **Build**
 8. Select "Use the local compile server" _(it's usually faster than LabView FPGA Compile Cloud)_
 9. Click OK
 10. Wait for build to successfully finish
   * check CPU usage, there should be process called Vivado taking > 20% CPU time
-11. Select M1M3SupportFPGA.vi (under FPGA Target)
+11. Select ts\_M1M3SupportFPGA.vi (under FPGA Target)
 12. Right click, select **"Launch C API Generator"**
 13. Click **Generate** (after selecting existing output directory and leaving Prefix blank)
-14. Copy resulting lvbitx file to ts_m1m3thermal/Bitfiles, and NiFpga_M1M3ThermalFPGA.h to ts_m1m3thermal/src/NiFpga
-15. Recompile ts_m1m3thermal (make)
+14. Copy resulting NiFpga\_ts\_M1M3ThermalFPGA.lvbitx file to ts\_m1m3thermal/Bitfiles, and NiFpga\_ts\_M1M3ThermalFPGA.h to ts\_m1m3thermal/src/NiFpga
+15. Recompile ts\_m1m3thermal (make)
 
 ## Overview
 
