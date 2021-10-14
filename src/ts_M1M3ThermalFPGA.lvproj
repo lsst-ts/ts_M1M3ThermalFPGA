@@ -2483,7 +2483,7 @@ AddOutputFilter chunkFilter
 						<Property Name="Comp.CustomXilinxParameters" Type="Str"></Property>
 						<Property Name="Comp.MaxFanout" Type="Int">-1</Property>
 						<Property Name="Comp.RandomSeed" Type="Bool">false</Property>
-						<Property Name="Comp.Version.Build" Type="Int">42</Property>
+						<Property Name="Comp.Version.Build" Type="Int">44</Property>
 						<Property Name="Comp.Version.Fix" Type="Int">0</Property>
 						<Property Name="Comp.Version.Major" Type="Int">1</Property>
 						<Property Name="Comp.Version.Minor" Type="Int">1</Property>
