@@ -168,13 +168,13 @@ the host machine to parse the data.
 | ---- | --------------------- |
 | AI0  | CT7 current monitor   |
 | AI1  | CT8 current monitor   |
-| AI2  |                       |
+| AI2  | Mixing Valve position |
 | AI3  |                       |
 | AI4  |                       |
 | AI5  |                       |
 | AI6  |                       |
 | AI7  |                       |
-| AI8  | Mixing Valve position |
+| AI8  |                       |
 | AI9  |                       |
 | AI10 |                       |
 | AI11 |                       |
@@ -290,23 +290,4 @@ Fans (96x) ILC Modbus.
 | 3    | NA  |                                |
 | 4    | NA  |                                |
 
-## Slot 8 - [NI 9213](https://www.ni.com/en-us/support/model.ni-9213.html)
-
-| port | Pins(+-) | Assignment               |
-| ---- | -------- | ------------------------ |
-| TC0  | 2,20     | air mirror top surface   |
-| TC1  | 3,21     | mirror cell air          |
-| TC2  | 4,22     | mirror coolant supply    |
-| TC3  | 5,23     | mirror coolant return    |
-| TC4  | 6,24     | telescope coolant supply |
-| TC5  | 7,25     | telescope coolant return |
-| TC6  | 8,26     |                          |
-| TC7  | 9,27     |                          |
-| TC8  | 10,28    |                          |
-| TC9  | 11,29    |                          |
-| TC10 | 12,30    |                          |
-| TC11 | 13,31    |                          |
-| TC12 | 14,32    |                          |
-| TC13 | 15,33    |                          |
-| TC14 | 16,34    |                          |
-| TC15 | 17,35    |                          |
+## Slot 8 - empty
