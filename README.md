@@ -75,6 +75,8 @@ Receiving (reading) code works by placing values into FIFO. Transmitting
 is available, act accordingly. This is coupled with DIO states (e.g. to make
 sure next bit/byte on serial line is transmitted after the current).
 
+Please see [Command codes](docs/CommandCode.md) for communication details.
+
 # Controlled devices
 
 * 96x fan ILCs
@@ -285,7 +287,7 @@ Fans (96x) ILC Modbus.
 
 | Port | Pin | Assignment                     |
 | ---- | --- | ------------------------------ |
-| 1    | NA  |                                |
+| 1    | NA  | Glycol temperature 8ch         |
 | 2    | NA  |                                |
 | 3    | NA  |                                |
 | 4    | NA  |                                |
