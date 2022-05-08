@@ -11,7 +11,7 @@ responds on another predefined FIFO.
 | 17   | 32 bit float            | Sets mixing valve. Single parameter is requested current.           |
 | 21   | Length, Modbus commands | FCU Modbus commands.                                                |
 | 62   | Off == 0                | Switch GIS heartbeat.                                               |
-| 63   | Off == 0                | Power on/off VFD/Glycol pump.                                       |
+| 63   | Off == 0                | Power on/off VFD[^VFD]/Glycol pump.                                 |
 | 252  |                         | Clear Modbus IRQ, start modbus communication.                       |
 
 # RequestFIFO codes
@@ -32,6 +32,7 @@ meter and VFD control of the glycol pump. MPU programming are described
 
 | Code | Parameter(s)          | Description                                                         |
 | ---- | --------------------- | ------------------------------------------------------------------- |
-| 1    | Length, MPU programme | MPU code for VFD.                                                   |
-| 2    | Length, MPU programme | MPU code for FlowMeter.                                             |
+| 1    | Length, MPU program   | MPU code for VFD[^VFD].                                             |
+| 2    | Length, MPU program   | MPU code for FlowMeter.                                             |
 
+[^VFD]: Variable Frequency Drive, component varying frequency and voltage for AC motor
