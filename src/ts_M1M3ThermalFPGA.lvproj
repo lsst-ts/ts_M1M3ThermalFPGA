@@ -2596,9 +2596,9 @@ AddOutputFilter chunkFilter
 						<Item Name="Clear Errors.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/error.llb/Clear Errors.vi"/>
 						<Item Name="niFPGA SGL To U32 Cast.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/Analysis/utilities/niFPGA SGL To U32 Cast.vi"/>
 						<Item Name="niFPGA U32 To SGL Cast.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/Analysis/utilities/niFPGA U32 To SGL Cast.vi"/>
+						<Item Name="lvSimController.dll" Type="Document" URL="/&lt;vilib&gt;/rvi/Simulation/lvSimController.dll"/>
 					</Item>
 					<Item Name="PortType.ctl" Type="VI" URL="../Modbus_Processing_Unit/src/PortType.ctl"/>
-					<Item Name="_U64Out.vi" Type="VI" URL="../Modbus_Processing_Unit/src/_U64Out.vi"/>
 				</Item>
 				<Item Name="Build Specifications" Type="Build">
 					<Item Name="ts_M1M3ThermalFPGA" Type="{F4C5E96F-7410-48A5-BB87-3559BC9B167F}">
