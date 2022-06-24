@@ -83,6 +83,7 @@ sure next bit/byte on serial line is transmitted after the current).
   * can set target output temperature and fan speed
 * Coolant pump
 * Mixing valve
+* Glycol temperatures
 * Coolant flow meter
 * Windspeed sensor
 
@@ -169,19 +170,20 @@ handle communication with the device. Currently Flow Meter and Glycol Pump
 Devices are assigned numbers to select them in multiplex. VFD is 1, FlowMeter
 is 2.
 
-MPU should be commanded through MPUCommands FIFO multiplex. Data are dumped
-into MPUResponse FIFO. The following base offsets are provided. As an example,
-to write commands to VFD (Glycol pump) MPU, write 1 followed by MPU command
-lenght and commands to MPUCommands. To request FlowMeter Readout data, write
-152 to MPUCommands.
+MPU should be commanded through MPUCommands FIFO multiplex. Response are put
+into MPUResponse FIFO. The first byte written to MPUCommands shall contain in
+upper nibble MPU device number (1 for VFD, 2 for Flow Meter) and in lower
+nibble MPU command. So to command read port and MPU telemetery for Flow Meter,
+issue command 0x22 (34 decimal).
 
-| Base   | MPU command                                                    |
-| ------ | -------------------------------------------------------------- |
-| 0      | Write new command buffer to MPU (MPU multiplex code 1)         |
-| 130    | Reset MPU errors (MPU multiplex code 0)                        |
-| 150    | Dump MPU response (MPU multiplex code 2)                       |
-| 160    | Reset MPU port counters (MPU multiplexe code 3)                |
-| 170    | Sets MPU port timeouts (MPU multipex code 4)                   | 
+| Command   | MPU command                                                    |
+| --------- | -------------------------------------------------------------- |
+| 0         | Reset MPU errors (MPU multiplex code 0)                        |
+| 1         | Write new command buffer to MPU (MPU multiplex code 1)         |
+| 2         | Dump MPU response (MPU multiplex code 2)                       |
+| 3         | Reset MPU port counters (MPU multiplexe code 3)                |
+| 4         | Sets MPU port timeouts (MPU multipex code 4)                   | 
+| 8         | Read MPU response FIFO (copy it to MPUResponse FIFO)           |
 
 # DIO assignment
 
