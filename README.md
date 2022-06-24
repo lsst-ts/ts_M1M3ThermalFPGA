@@ -160,6 +160,29 @@ example above a digital input sample is pushed into the
 The fan coil units (FCUs)  modbus processes are much more complex and rely on
 the host machine to parse the data.
 
+## MPU devices
+
+Devices residing on Modbus serial port uses Modbus\_Processing\_Unit (MPU) to
+handle communication with the device. Currently Flow Meter and Glycol Pump
+(VFD, Variable Frequency Drive), are used. More devices might be added.
+
+Devices are assigned numbers to select them in multiplex. VFD is 1, FlowMeter
+is 2.
+
+MPU should be commanded through MPUCommands FIFO multiplex. Data are dumped
+into MPUResponse FIFO. The following base offsets are provided. As an example,
+to write commands to VFD (Glycol pump) MPU, write 1 followed by MPU command
+lenght and commands to MPUCommands. To request FlowMeter Readout data, write
+152 to MPUCommands.
+
+| Base   | MPU command                                                    |
+| ------ | -------------------------------------------------------------- |
+| 0      | Write new command buffer to MPU (MPU multiplex code 1)         |
+| 130    | Reset MPU errors (MPU multiplex code 0)                        |
+| 150    | Dump MPU response (MPU multiplex code 2)                       |
+| 160    | Reset MPU port counters (MPU multiplexe code 3)                |
+| 170    | Sets MPU port timeouts (MPU multipex code 4)                   | 
+
 # DIO assignment
 
 ## Slot 1 - [NI 9207](https://www.ni.com/en-us/support/model.ni-9207.html)
