@@ -85,6 +85,7 @@ Please see [Command codes](docs/CommandCode.md) for communication details.
   * can set target output temperature and fan speed
 * Coolant pump
 * Mixing valve
+* Glycol temperatures
 * Coolant flow meter
 * Windspeed sensor
 
@@ -161,6 +162,30 @@ example above a digital input sample is pushed into the
 
 The fan coil units (FCUs)  modbus processes are much more complex and rely on
 the host machine to parse the data.
+
+## MPU devices
+
+Devices residing on Modbus serial port uses Modbus\_Processing\_Unit (MPU) to
+handle communication with the device. Currently Flow Meter and Glycol Pump
+(VFD, Variable Frequency Drive), are used. More devices might be added.
+
+Devices are assigned numbers to select them in multiplex. VFD is 1, FlowMeter
+is 2.
+
+MPU should be commanded through MPUCommands FIFO multiplex. Response are put
+into MPUResponse FIFO. The first byte written to MPUCommands shall contain in
+upper nibble MPU device number (1 for VFD, 2 for Flow Meter) and in lower
+nibble MPU command. So to command read port and MPU telemetery for Flow Meter,
+issue command 0x22 (34 decimal).
+
+| Command   | MPU command                                                    |
+| --------- | -------------------------------------------------------------- |
+| 0         | Reset MPU errors (MPU multiplex code 0)                        |
+| 1         | Write new command buffer to MPU (MPU multiplex code 1)         |
+| 2         | Dump MPU response (MPU multiplex code 2)                       |
+| 3         | Reset MPU port counters (MPU multiplexe code 3)                |
+| 4         | Sets MPU port timeouts (MPU multipex code 4)                   | 
+| 8         | Read MPU response FIFO (copy it to MPUResponse FIFO)           |
 
 # DIO assignment
 
