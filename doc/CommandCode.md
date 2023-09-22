@@ -34,5 +34,11 @@ meter and VFD control of the glycol pump. MPU programming are described
 | ---- | --------------------- | ------------------------------------------------------------------- |
 | 1    | Length, MPU program   | MPU code for VFD[^VFD].                                             |
 | 2    | Length, MPU program   | MPU code for FlowMeter.                                             |
+| 11   |                       | Request data from VFD.                                              |
+| 12   |                       | Request daty from FlowMeter.                                        |
+
+Interrupts 61 (VFD) and 62 (FlowMeter) are available for triggering. Those are
+raised with 240 opcode. See [Serial Machine Opcodes](serial-machine-opcodes.md)
+for details.
 
 [^VFD]: Variable Frequency Drive, component varying frequency and voltage for AC motor
