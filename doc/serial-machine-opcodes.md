@@ -60,8 +60,6 @@ Read from the port. Reading stops either after timeout expires, or when given
 number of character were already read. The command execution ends either with
 timeout, or when expected number of bytes is read.
 
-> [!NOTE]
-
 ### Parameters
 
 | Length (bytes) | Description                                                            |
@@ -72,6 +70,26 @@ timeout, or when expected number of bytes is read.
 ### Returns
 
 Readout data are returned as read from the port.
+
+## 100 - wait microseconds (us)
+
+Sleep for given numeber of microseconds. Code execution continues after wait is fulfilled.
+
+### Parameters
+
+| Length (bytes) | Description                                                            |
+| -------------- | ---------------------------------------------------------------------- |
+| 2              | Sleep time in microseconds.                                            |
+
+## 101 - wait milliseconds (ms)
+
+Sleep for given numeber of milliseconds. Code execution continues after wait is fulfilled.
+
+### Parameters
+
+| Length (bytes) | Description                                                            |
+| -------------- | ---------------------------------------------------------------------- |
+| 2              | Sleep time in milliseconds.                                            |
 
 ## 240 - raise interrupt
 
