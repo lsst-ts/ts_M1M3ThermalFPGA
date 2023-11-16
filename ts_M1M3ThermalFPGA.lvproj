@@ -2467,6 +2467,7 @@ AddOutputFilter chunkFilter
 						<Item Name="Clear Errors.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/error.llb/Clear Errors.vi"/>
 						<Item Name="niFPGA U32 To SGL Cast.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/Analysis/utilities/niFPGA U32 To SGL Cast.vi"/>
 						<Item Name="FxpSim.dll" Type="Document" URL="/&lt;vilib&gt;/rvi/FXPMathLib/sim/FxpSim.dll"/>
+						<Item Name="lvSimController.dll" Type="Document" URL="/&lt;vilib&gt;/rvi/Simulation/lvSimController.dll"/>
 					</Item>
 					<Item Name="user.lib" Type="Folder">
 						<Item Name="FlpLib U32 to SGL Cast.vi" Type="VI" URL="/&lt;userlib&gt;/_NI FLP Library/FPGA/top/FlpLib U32 to SGL Cast.vi"/>
@@ -2481,7 +2482,7 @@ AddOutputFilter chunkFilter
 						<Property Name="Comp.CustomXilinxParameters" Type="Str"></Property>
 						<Property Name="Comp.MaxFanout" Type="Int">-1</Property>
 						<Property Name="Comp.RandomSeed" Type="Bool">false</Property>
-						<Property Name="Comp.Version.Build" Type="Int">39</Property>
+						<Property Name="Comp.Version.Build" Type="Int">41</Property>
 						<Property Name="Comp.Version.Fix" Type="Int">0</Property>
 						<Property Name="Comp.Version.Major" Type="Int">1</Property>
 						<Property Name="Comp.Version.Minor" Type="Int">1</Property>
